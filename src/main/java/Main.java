@@ -1,8 +1,8 @@
-//package main.java;
+package main.java;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 public class Main {
   public static void main(String[] args) {
@@ -11,17 +11,25 @@ public class Main {
 
      //Uncomment this block to pass the first stage
 
-     try(ServerSocket serverSocket = new ServerSocket(4221);) {
-
-       // Since the tester restarts your program quite often, setting SO_REUSEADDR
-       // ensures that we don't run into 'Address already in use' errors
+     try(ServerSocket serverSocket = new ServerSocket(4221)) {
        serverSocket.setReuseAddress(true);
+
+       Socket client = serverSocket.accept();
+         System.out.println("Accepted new connection");
+
+         BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+         String request = in.readLine();
+
+       String notFound = "HTTP/1.1 404 Not Found\r\n\r\n";
        String response = "HTTP/1.1 200 OK\r\n\r\n";
 
-       OutputStream out = serverSocket.accept().getOutputStream();
-       out.write(response.getBytes());
+       OutputStream out = client.getOutputStream();
+
+       if(request.equals("/")) out.write(request.getBytes());
+       else out.write(notFound.getBytes());
+
        out.flush();
-       System.out.println("accepted new connection");
+       client.close();
      } catch (IOException e) {
        System.out.println("IOException: " + e.getMessage());
      }
